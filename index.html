@@ -4,43 +4,90 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Available Locations</title>
+  <title>Find a location</title>
 
   <script>
-    // Define the api key throughout the application
-    // var API_KEY = 123;
-    var API_KEY = AIzaSyBwsSIVLU_0NgCSbr4ww1j-n_zaqWrM_S8;
+    var API_KEY = 'AIzaSyBwsSIVLU_0NgCSbr4ww1j-n_zaqWrM_S8';
   </script>
-
   <!-- Google Maps API Script -->
-  <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBwsSIVLU_0NgCSbr4ww1j-n_zaqWrM_S8&callback=initMap" async defer></script>
-
-  <p> test </p>
-
+  <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBwsSIVLU_0NgCSbr4ww1j-n_zaqWrM_S8&callback=initMap"
+    async defer></script>
 </head>
 
 <body>
-  <!-- Your HTML content here -->
-  <div id="map"></div>
+  <!--  Map container -->
+  <div id="container">
+    <!-- List of locations -->
+    <div id="locationTable">
+      <h2>Locations</h2>
+      <table>
+        <tr>
+          <th>Name</th>
+          <th>Address</th>
+          <th>Phone</th>
+        </tr>
+        <tr>
+          <td>Location 1</td>
+          <td>123 Main St</td>
+          <td>(123) 456-7890</td>
+        </tr>
+        <tr>
+          <td>Location 2</td>
+          <td>456 Elm St</td>
+          <td>(987) 654-3210</td>
+        </tr>
+      </table>
+    </div>
+
+    <div id="map"></div>
+  </div>
 </body>
+
 </html>
 
 <script>
   // Initialize the map
   function initMap() {
-      // Create a new map centered at a specific location
-      var map = new google.maps.Map(document.getElementById('map'), {
-          center: { lat: 40.7128, lng: -74.0060 }, // Example: New York City coordinates
-          zoom: 12, // Adjust the zoom level as needed
-      });
+    // Use the API_KEY variable to set the API key
+    var map = new google.maps.Map(document.getElementById('map'), {
+      center: { lat: 35.12384, lng: -106.62723 }, // Center of Albuquerque
+      zoom: 11, // Adjust the zoom level as needed
 
-      // You can add more map customization and functionality here
+      // Customize the map options
+      disableDefaultUI: true, // Disables all default UI controls
+      zoomControl: true, // Enables the zoom control
+    });
   }
 </script>
 
+<!-- CSS -->
 <style>
   #map {
-    height: 400px; /* Set the height of your map container */
-    width: 100%; /* Set the width of your map container */
+    width: 50%;
+    /* Set the width to 70% the total screen size */
+    height: 60vh;
+    /* Set height to be 70% the total height as well */
+    border-radius: 15px;
+    /* round the corners of the map */
+    margin-left: 5%;
+    /* leave a small space on the left side */
+    margin-right: 25%;
+    /* Extra space on the right side so we can list the options as well */
+    float: left; /* Float the map container to the left */
+  }
+
+  #locationTable {
+    width: 20%;
+    /* Set the width to 20% of the total screen size */
+    text-align: left;
+    /* Align text to the right */
+    float: left; /* Float the locationTable container to the left */
+  }
+
+  /* Container to align elements horizontally */
+  #container::after {
+    content: "";
+    display: table;
+    clear: both;
   }
 </style>
