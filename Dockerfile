@@ -6,6 +6,8 @@ WORKDIR /app
 
 # Copy your HTML and CSS files to the container
 COPY index.html styles.css /app/
+# Copy the image assets directory
+COPY resources /app/resources
 
 # Install a simple HTTP server for serving static files (optional but recommended)
 RUN npm install -g http-server

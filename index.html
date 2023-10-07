@@ -10,13 +10,14 @@
     var API_KEY = 'AIzaSyBwsSIVLU_0NgCSbr4ww1j-n_zaqWrM_S8';
   </script>
   <!-- Google Maps API Script -->
-  <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBwsSIVLU_0NgCSbr4ww1j-n_zaqWrM_S8&callback=initMap"
-    async defer></script>
+  <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBwsSIVLU_0NgCSbr4ww1j-n_zaqWrM_S8&callback=initMap" async defer></script>
 </head>
 
 <body>
   <!--  Map container -->
   <div id="container">
+    <div id="map"></div>
+
     <!-- List of locations -->
     <div id="locationTable">
       <h2>Locations</h2>
@@ -38,12 +39,37 @@
         </tr>
       </table>
     </div>
-
-    <div id="map"></div>
   </div>
+
+  <!-- Show pages for each location -->
+<!-- List of locations -->
+<div id="locationTable">
+  <h2>Locations</h2>
+  <table>
+    <tr>
+      <th>Photo</th>
+      <th>Name</th>
+      <th>Address</th>
+      <th>Phone</th>
+    </tr>
+    <tr>
+      <td><img src="resources/placehold.jpg" alt="Location 1 Photo" width="100" height="100"></td>
+      <td>Location 1</td>
+      <td>123 Main St</td>
+      <td>(123) 456-7890</td>
+    </tr>
+    <tr>
+      <td><img src="resources/placehold.jpg" alt="Location 2 Photo" width="100" height="100"></td>
+      <td>Location 2</td>
+      <td>456 Elm St</td>
+      <td>(987) 654-3210</td>
+    </tr>
+  </table>
+</div>
 </body>
 
 </html>
+
 
 <script>
   // Initialize the map
@@ -63,7 +89,7 @@
 <!-- CSS -->
 <style>
   #map {
-    width: 50%;
+    width: 70%;
     /* Set the width to 70% the total screen size */
     height: 60vh;
     /* Set height to be 70% the total height as well */
@@ -71,23 +97,19 @@
     /* round the corners of the map */
     margin-left: 5%;
     /* leave a small space on the left side */
-    margin-right: 25%;
+    margin-right: 10%;
     /* Extra space on the right side so we can list the options as well */
     float: left; /* Float the map container to the left */
   }
 
   #locationTable {
-    width: 20%;
-    /* Set the width to 20% of the total screen size */
-    text-align: left;
-    /* Align text to the right */
-    float: left; /* Float the locationTable container to the left */
+    width: 50%;
+    float: left; /* Change the float property to "left" to move it to the right */
   }
 
   /* Container to align elements horizontally */
-  #container::after {
-    content: "";
-    display: table;
-    clear: both;
+  #container {
+    display: flex;
+    flex-direction: row;
   }
 </style>
