@@ -8,9 +8,11 @@
 
   <script>
     var API_KEY = 'AIzaSyBwsSIVLU_0NgCSbr4ww1j-n_zaqWrM_S8';
+    var GOOGLE_SHEET = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRaUjtO_tH1bC35QFWGaHd1kZleUFCeKwegB6DHS_MSV6D0WwFvPbK2X8k7tBdEirlgRQaXV8HxbTuY/pubhtml'
   </script>
   <!-- Google Maps API Script -->
-  <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBwsSIVLU_0NgCSbr4ww1j-n_zaqWrM_S8&callback=initMap" async defer></script>
+  <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBwsSIVLU_0NgCSbr4ww1j-n_zaqWrM_S8&callback=initMap"
+    async defer></script>
 </head>
 
 <body>
@@ -22,55 +24,61 @@
     <div id="locationTable">
       <h2>Locations</h2>
       <table>
-        <tr>
-          <th>Name</th>
-          <th>Address</th>
-          <th>Phone</th>
-        </tr>
-        <tr>
-          <td>Location 1</td>
-          <td>123 Main St</td>
-          <td>(123) 456-7890</td>
-        </tr>
-        <tr>
-          <td>Location 2</td>
-          <td>456 Elm St</td>
-          <td>(987) 654-3210</td>
-        </tr>
+        <thead>
+          <tr>
+            <th>Photo</th>
+            <th>Name</th>
+            <th>Address</th>
+            <th>Phone</th>
+          </tr>
+        </thead>
+        <tbody id="locationData"></tbody>
       </table>
     </div>
   </div>
 
   <!-- Show pages for each location -->
-<!-- List of locations -->
-<div id="locationTable">
-  <h2>Locations</h2>
-  <table>
-    <tr>
-      <th>Photo</th>
-      <th>Name</th>
-      <th>Address</th>
-      <th>Phone</th>
-    </tr>
-    <tr>
-      <td><img src="resources/placehold.jpg" alt="Location 1 Photo" width="100" height="100"></td>
-      <td>Location 1</td>
-      <td>123 Main St</td>
-      <td>(123) 456-7890</td>
-    </tr>
-    <tr>
-      <td><img src="resources/placehold.jpg" alt="Location 2 Photo" width="100" height="100"></td>
-      <td>Location 2</td>
-      <td>456 Elm St</td>
-      <td>(987) 654-3210</td>
-    </tr>
-  </table>
-</div>
+  <!-- List of locations -->
+  <div id="locationTable">
+    <h2>Locations</h2>
+    <table>
+      <tr>
+        <th>Photo</th>
+        <th>Name</th>
+        <th>Address</th>
+        <th>Phone</th>
+      </tr>
+      <tr>
+        <td><img src="resources/placehold.jpg" alt="Location 1 Photo" width="100" height="100"></td>
+        <td>Location 1</td>
+        <td>123 Main St</td>
+        <td>(123) 456-7890</td>
+      </tr>
+      <tr>
+        <td><img src="resources/placehold.jpg" alt="Location 2 Photo" width="100" height="100"></td>
+        <td>Location 2</td>
+        <td>456 Elm St</td>
+        <td>(987) 654-3210</td>
+      </tr>
+    </table>
+  </div>
+
+<!-- Fetch Data Button -->
+<button onclick="fetchData()">Fetch Data</button>
+
+  
+
+  <!-- Container for Data -->
+  <div id="dataContainer"></div>
 </body>
 
 </html>
 
 
+
+
+
+<!-- Misc Functions / JavaScript -->
 <script>
   // Initialize the map
   function initMap() {
@@ -84,7 +92,63 @@
       zoomControl: true, // Enables the zoom control
     });
   }
+
+  // Function to fetch data from Google Sheets
+  function fetchData() {
+    console.log ('Fetching data...');
+    const sheetURL = GOOGLE_SHEET;
+    const dataContainer = document.getElementById('locationData');
+
+    // Make a request to the Google Sheet
+    fetch(sheetURL)
+      .then((response) => response.text())
+      .then((data) => {
+        // Process the data here and populate the dataContainer
+        parseGoogleSheetData(data, dataContainer);
+      })
+      .catch((error) => {
+        console.error('Error fetching data:', error);
+      });
+    console.log('Done fetching data.');
+  }
+
+// Function to parse Google Sheet data
+function parseGoogleSheetData(data, container) {
+  // Assuming data is in CSV format, you can use a CSV parsing library or split by newline and comma
+  const rows = data.split('\n');
+  const header = rows[0].split(',');
+  const htmlRows = [];
+
+  for (let i = 1; i < rows.length; i++) {
+    const cells = rows[i].split(',');
+    if (cells.length === header.length) {
+      const name = cells[0];
+      console.log('name' + name);
+      const address = cells[1];
+      console.log('address' + address);
+      const phone = cells[2];
+      console.log('Phone' + phone);
+
+      htmlRows.push(`
+        <tr>
+          <td><img src="resources/placehold.jpg" alt="${name} Photo" width="100" height="100"></td>
+          <td>${name}</td>
+          <td>${address}</td>
+          <td>${phone}</td>
+        </tr>
+      `);
+    }
+  }
+
+  // Display the table rows in the container
+  container.innerHTML = htmlRows.join('');
+}
+
 </script>
+
+
+
+
 
 <!-- CSS -->
 <style>
@@ -99,12 +163,14 @@
     /* leave a small space on the left side */
     margin-right: 10%;
     /* Extra space on the right side so we can list the options as well */
-    float: left; /* Float the map container to the left */
+    float: left;
+    /* Float the map container to the left */
   }
 
   #locationTable {
     width: 50%;
-    float: left; /* Change the float property to "left" to move it to the right */
+    float: left;
+    /* Change the float property to "left" to move it to the right */
   }
 
   /* Container to align elements horizontally */
