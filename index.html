@@ -65,35 +65,8 @@
     </div>
   </div>
 
-  <!-- Show pages for each location -->
-  <!-- List of locations -->
-  <div id="locationTable">
-    <h2>Locations</h2>
-    <table>
-
-    </table>
-  </div>
-
-  <!-- Fetch Data Button -->
+<!-- Fetch Data Button -->
 <button onclick="fetchData()">Fetch Data</button>
-
-<!-- Container for Data -->
-<div id="dataContainer">
-  <h2>Data from Google Sheet</h2>
-  <table>
-    <thead>
-      <tr>
-        <th>Photo</th>
-        <th>Name</th>
-        <th>Address</th>
-        <th>Phone</th>
-      </tr>
-    </thead>
-    <tbody id="locationData"></tbody>
-  </table>
-</div>
-</body>
-
 </html>
 
 
@@ -131,56 +104,43 @@
     console.log('Done fetching data.');
   }
 
-  /*
-    Parses the data from the request above and populates into the container 
-
-    The request returns the entire HTML request, we start by jumping to the final line of the return 
-    which contains the body of the html request. Each row is in the format:
-    <tr style="height: 20px"><th id="0R0" style="height: 20px;" class="row-headers-background row-header-shim"><div class="row-header-wrapper" style="line-height: 20px">1</div></th><td class="s0">Location 1</td><td class="s0">Location 2</td><td class="s0">Location 3</td></tr>
-    
-    - loop through until we find "class="sX">...</td> where X is the column number. there is one location on each column.
-    - extract the location name from the <td> tag
-    - store the location name in an array for the column number
-    - repeat until the end of file is reached, then dumb into the container.
-  */
   function parseGoogleSheetData(data, container) {
-  // Use regular expressions to find entries with the format "class="sX">...</td>"
-  const regex = /class="s(\d+)">([^<]+)<\/td>/g;
-
-  // Initialize an object to store data for each index
-  const dataByIndex = {};
-
-  // Iterate through the data using regular expressions
-  let match;
-  while ((match = regex.exec(data)) !== null) {
-    const index = match[1];
-    const value = match[2];
-
-    // Create an array for the index if it doesn't exist
-    if (!dataByIndex[index]) {
-      dataByIndex[index] = [];
-    }
-
-    // Push the value into the array for the corresponding index
-    dataByIndex[index].push(value);
+  // Find the table body within the response HTML
+  const tableBodyRegex = /<tbody>([\s\S]*?)<\/tbody>/;
+  const tableBodyMatch = tableBodyRegex.exec(data);
+  if (!tableBodyMatch) {
+    console.error('Table body not found in response.');
+    return;
   }
 
-  // Create the HTML rows and populate the table
+  const tableBodyHTML = tableBodyMatch[1];
+
+  // Create an HTML element to parse the table body
+  const tableBody = document.createElement('div');
+  tableBody.innerHTML = tableBodyHTML;
+
+  // Iterate through the rows and extract data
+  const rows = tableBody.querySelectorAll('tr');
   const htmlRows = [];
-  for (const index in dataByIndex) {
-    const rowData = `
-      <tr>
-        <td><img src="resources/placehold.jpg" alt="Location ${index} Photo" width="100" height="100"></td>
-        <td>Location ${index}</td>
-        <td>${dataByIndex[index].join('</td><td>')}</td>
-      </tr>
-    `;
-    htmlRows.push(rowData);
-  }
 
+  for (let i = 0; i < rows.length; i++) {
+    const columns = rows[i].querySelectorAll('td');
+    const rowData = Array.from(columns).map(column => column.textContent.trim());
+    console.log("row data: " + rowData);
+
+    htmlRows.push(`
+      <tr>
+        <td><img src="resources/placehold.jpg" alt="Location ${i + 1} Photo" width="100" height="100"></td>
+        <td>Location ${i + 1}</td>
+        <td>${rowData.join('</td><td>')}</td>
+      </tr>
+    `);
+  }
+  console.log("Done parsing data")
   // Display the table rows in the container
   container.innerHTML = htmlRows.join('');
-  }
+}
+
 
 
 </script>
