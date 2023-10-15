@@ -1,3 +1,8 @@
+<!-- 
+  @Author: Ryan Scherbarth
+  @Date: 10/15/2020
+  @Contact: ryan@ryanscherbarth.com
+ -->
 <!DOCTYPE html>
 <html lang="en">
 
@@ -15,7 +20,30 @@
     async defer></script>
 </head>
 
+  <!-- 
+
+    A locaiton page. Since this is to be used with a website created on wix, I have to get creative with where I store my data. To get around this 
+    I am using a google sheet above as a database. I can just make this document public since there is no private information to be stored on it and 
+    send a request as soon as the user loads the page to populate the locations. 
+
+    I am using a google maps api key to send requests to the maps api. this is how I am able to display the map in the first place, as well as add markers
+    for the locations to it. Both of these are stored in variables above.
+
+    The data from my implementation of a database is handled in the scripts functions below. I do a fetch for the google sheet upon page load, and then feed 
+    that into a helper method that parses the data, formats it, and dumps it into the display container. it then adds plot points for each of these locations 
+    on the map. 
+
+    Users will also have a link to an airtable, where they are able to add new locations to the database. This will then send an email to the admins of the site, 
+    and with one click can be approved. After approved it will be concatendated to the bottom of the google sheets, and will then be displayed for all users to 
+    access the site following that point. 
+
+    The limitations from adding on to a pre-existing wix site provide some unique challenges to work around, namely the database. It is for this same reason that
+    I have to place all of my css styling inline, as an addition to the wix site cannot have multiple files.
+
+  -->
+
 <body>
+  
   <!--  Map container -->
   <div id="container">
     <div id="map"></div>
@@ -42,24 +70,7 @@
   <div id="locationTable">
     <h2>Locations</h2>
     <table>
-      <tr>
-        <th>Photo</th>
-        <th>Name</th>
-        <th>Address</th>
-        <th>Phone</th>
-      </tr>
-      <tr>
-        <td><img src="resources/placehold.jpg" alt="Location 1 Photo" width="100" height="100"></td>
-        <td>Location 1</td>
-        <td>123 Main St</td>
-        <td>(123) 456-7890</td>
-      </tr>
-      <tr>
-        <td><img src="resources/placehold.jpg" alt="Location 2 Photo" width="100" height="100"></td>
-        <td>Location 2</td>
-        <td>456 Elm St</td>
-        <td>(987) 654-3210</td>
-      </tr>
+
     </table>
   </div>
 
@@ -120,6 +131,18 @@
     console.log('Done fetching data.');
   }
 
+  /*
+    Parses the data from the request above and populates into the container 
+
+    The request returns the entire HTML request, we start by jumping to the final line of the return 
+    which contains the body of the html request. Each row is in the format:
+    <tr style="height: 20px"><th id="0R0" style="height: 20px;" class="row-headers-background row-header-shim"><div class="row-header-wrapper" style="line-height: 20px">1</div></th><td class="s0">Location 1</td><td class="s0">Location 2</td><td class="s0">Location 3</td></tr>
+    
+    - loop through until we find "class="sX">...</td> where X is the column number. there is one location on each column.
+    - extract the location name from the <td> tag
+    - store the location name in an array for the column number
+    - repeat until the end of file is reached, then dumb into the container.
+  */
   function parseGoogleSheetData(data, container) {
   // Use regular expressions to find entries with the format "class="sX">...</td>"
   const regex = /class="s(\d+)">([^<]+)<\/td>/g;
