@@ -63,13 +63,24 @@
     </table>
   </div>
 
-<!-- Fetch Data Button -->
+  <!-- Fetch Data Button -->
 <button onclick="fetchData()">Fetch Data</button>
 
-  
-
-  <!-- Container for Data -->
-  <div id="dataContainer"></div>
+<!-- Container for Data -->
+<div id="dataContainer">
+  <h2>Data from Google Sheet</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Photo</th>
+        <th>Name</th>
+        <th>Address</th>
+        <th>Phone</th>
+      </tr>
+    </thead>
+    <tbody id="locationData"></tbody>
+  </table>
+</div>
 </body>
 
 </html>
@@ -82,28 +93,25 @@
 <script>
   // Initialize the map
   function initMap() {
-    // Use the API_KEY variable to set the API key
     var map = new google.maps.Map(document.getElementById('map'), {
       center: { lat: 35.12384, lng: -106.62723 }, // Center of Albuquerque
       zoom: 11, // Adjust the zoom level as needed
-
       // Customize the map options
       disableDefaultUI: true, // Disables all default UI controls
       zoomControl: true, // Enables the zoom control
     });
   }
 
-  // Function to fetch data from Google Sheets
   function fetchData() {
-    console.log ('Fetching data...');
-    const sheetURL = GOOGLE_SHEET;
+    console.log('Fetching data...');
     const dataContainer = document.getElementById('locationData');
 
     // Make a request to the Google Sheet
-    fetch(sheetURL)
+    fetch(GOOGLE_SHEET)
       .then((response) => response.text())
       .then((data) => {
         // Process the data here and populate the dataContainer
+        console.log('Data fetched:', data);
         parseGoogleSheetData(data, dataContainer);
       })
       .catch((error) => {
@@ -112,39 +120,48 @@
     console.log('Done fetching data.');
   }
 
-// Function to parse Google Sheet data
-function parseGoogleSheetData(data, container) {
-  // Assuming data is in CSV format, you can use a CSV parsing library or split by newline and comma
-  const rows = data.split('\n');
-  const header = rows[0].split(',');
-  const htmlRows = [];
+  function parseGoogleSheetData(data, container) {
+  // Use regular expressions to find entries with the format "class="sX">...</td>"
+  const regex = /class="s(\d+)">([^<]+)<\/td>/g;
 
-  for (let i = 1; i < rows.length; i++) {
-    const cells = rows[i].split(',');
-    if (cells.length === header.length) {
-      const name = cells[0];
-      console.log('name' + name);
-      const address = cells[1];
-      console.log('address' + address);
-      const phone = cells[2];
-      console.log('Phone' + phone);
+  // Initialize an object to store data for each index
+  const dataByIndex = {};
 
-      htmlRows.push(`
-        <tr>
-          <td><img src="resources/placehold.jpg" alt="${name} Photo" width="100" height="100"></td>
-          <td>${name}</td>
-          <td>${address}</td>
-          <td>${phone}</td>
-        </tr>
-      `);
+  // Iterate through the data using regular expressions
+  let match;
+  while ((match = regex.exec(data)) !== null) {
+    const index = match[1];
+    const value = match[2];
+
+    // Create an array for the index if it doesn't exist
+    if (!dataByIndex[index]) {
+      dataByIndex[index] = [];
     }
+
+    // Push the value into the array for the corresponding index
+    dataByIndex[index].push(value);
+  }
+
+  // Create the HTML rows and populate the table
+  const htmlRows = [];
+  for (const index in dataByIndex) {
+    const rowData = `
+      <tr>
+        <td><img src="resources/placehold.jpg" alt="Location ${index} Photo" width="100" height="100"></td>
+        <td>Location ${index}</td>
+        <td>${dataByIndex[index].join('</td><td>')}</td>
+      </tr>
+    `;
+    htmlRows.push(rowData);
   }
 
   // Display the table rows in the container
   container.innerHTML = htmlRows.join('');
-}
+  }
+
 
 </script>
+
 
 
 
