@@ -67,9 +67,6 @@
     </div>
   </div>
 
-  <!-- Fetch Data Button -->
-  <button id="fetchButton">Fetch Data</button>
-
 </html>
 
 
@@ -84,12 +81,12 @@
   // Initialize the map
   function initMap() {
     var map = new google.maps.Map(document.getElementById('map'), {
-      center: { lat: 35.12384, lng: -106.62723 }, // Center of Albuquerque
-      zoom: 11, // Adjust the zoom level as needed
-      // Customize the map options
-      disableDefaultUI: true, // Disables all default UI controls
-      zoomControl: true, // Enables the zoom control
+      center: { lat: 35.12384, lng: -106.62723 },
+      zoom: 11,
+      disableDefaultUI: true,
+      zoomControl: true,
     });
+    fetchData(); // Fetch data once the map is initialized
   }
 
   function fetchData() {
