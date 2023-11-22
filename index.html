@@ -1,6 +1,6 @@
 <!-- 
   @Author: Ryan Scherbarth
-  @Date: 10/15/2020
+  @Date: 11/19/2023
   @Contact: ryan@ryanscherbarth.com
  -->
 <!DOCTYPE html>
@@ -13,14 +13,16 @@
 
   <script>
     var API_KEY = 'AIzaSyBwsSIVLU_0NgCSbr4ww1j-n_zaqWrM_S8';
+    var edit_google_sheet = 'https://docs.google.com/spreadsheets/d/1KFb77_xtImhjlTXgQ_9fxUNKUazVuH-wq7-tPjdsrIQ/edit#gid=0'
     var GOOGLE_SHEET = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRaUjtO_tH1bC35QFWGaHd1kZleUFCeKwegB6DHS_MSV6D0WwFvPbK2X8k7tBdEirlgRQaXV8HxbTuY/pubhtml'
+    // var RESPONSES_SHEET = 'https://docs.google.com/spreadsheets/d/1KFb77_xtImhjlTXgQ_9fxUNKUazVuH-wq7-tPjdsrIQ/edit?usp=sharing'
   </script>
   <!-- Google Maps API Script -->
   <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBwsSIVLU_0NgCSbr4ww1j-n_zaqWrM_S8&callback=initMap"
     async defer></script>
 </head>
 
-  <!-- 
+<!-- 
 
     A locaiton page. Since this is to be used with a website created on wix, I have to get creative with where I store my data. To get around this 
     I am using a google sheet above as a database. I can just make this document public since there is no private information to be stored on it and 
@@ -43,7 +45,7 @@
   -->
 
 <body>
-  
+
   <!--  Map container -->
   <div id="container">
     <div id="map"></div>
@@ -65,8 +67,9 @@
     </div>
   </div>
 
-<!-- Fetch Data Button -->
-<button onclick="fetchData()">Fetch Data</button>
+  <!-- Fetch Data Button -->
+  <button id="fetchButton">Fetch Data</button>
+
 </html>
 
 
@@ -75,6 +78,9 @@
 
 <!-- Misc Functions / JavaScript -->
 <script>
+  const fetchButton = document.getElementById('fetchButton');
+  fetchButton.addEventListener('click', fetchData);
+
   // Initialize the map
   function initMap() {
     var map = new google.maps.Map(document.getElementById('map'), {
@@ -90,57 +96,71 @@
     console.log('Fetching data...');
     const dataContainer = document.getElementById('locationData');
 
-    // Make a request to the Google Sheet
-    fetch(GOOGLE_SHEET)
-      .then((response) => response.text())
-      .then((data) => {
-        // Process the data here and populate the dataContainer
-        console.log('Data fetched:', data);
-        parseGoogleSheetData(data, dataContainer);
-      })
-      .catch((error) => {
-        console.error('Error fetching data:', error);
-      });
+    // Append a timestamp query parameter to the URL to prevent caching
+    const timestamp = new Date().getTime();
+    const urlWithTimestamp = `${GOOGLE_SHEET}?timestamp=${timestamp}`;
+
+    const xhr = new XMLHttpRequest();
+    xhr.onreadystatechange = function () {
+      if (xhr.readyState === XMLHttpRequest.DONE) {
+        if (xhr.status === 200) {
+          const data = xhr.responseText;
+          const startIndex = data.indexOf('<tbody>');
+          const endIndex = data.indexOf('</tbody>');
+          const tableContent = data.substring(startIndex, endIndex + '</tbody>'.length);
+
+          // Process the extracted table content
+          console.log('Data fetched:', tableContent);
+          parseGoogleSheetData(tableContent, dataContainer);
+        } else {
+          console.error('Error fetching data:', xhr.status);
+        }
+      }
+    };
+    xhr.open('GET', urlWithTimestamp);
+    xhr.send();
     console.log('Done fetching data.');
   }
 
+
+
+
+
   function parseGoogleSheetData(data, container) {
-  // Find the table body within the response HTML
-  const tableBodyRegex = /<tbody>([\s\S]*?)<\/tbody>/;
-  const tableBodyMatch = tableBodyRegex.exec(data);
-  if (!tableBodyMatch) {
-    console.error('Table body not found in response.');
-    return;
+    const rows = data.split('</tr>'); // Split data into rows by </tr> tag
+
+    let htmlRows = [];
+    let i = 2; // Start from row 2 to skip the header
+
+    for (; i < rows.length; i++) {
+      const columns = rows[i].split('</td>'); // Split each row into columns by </td> tag
+      const rowData = columns.map(column => {
+        const startIndex = column.lastIndexOf('>') + 1;
+        return column.substring(startIndex).trim(); // Extract text content from within <td> tags
+      });
+
+      // Check if the row has content in any column
+      const hasContent = rowData.some(column => column.length > 0);
+
+      if (hasContent) {
+        // Check if the row has the expected number of columns
+        if (rowData.length >= 5) {
+          htmlRows.push(`
+          <tr>
+            <td><img src="resources/placehold.jpg" alt="Location ${i} Photo" width="100" height="100"></td>
+            <td>${rowData[1]}</td>
+            <td>${rowData.slice(2, 5).join('</td><td>')}</td> <!-- Skip the timestamp and adjust columns -->
+          </tr>
+        `);
+        }
+      } else {
+        break; // Stop processing if an empty row is encountered
+      }
+    }
+
+    // Display the table rows in the container
+    container.innerHTML = htmlRows.join('');
   }
-
-  const tableBodyHTML = tableBodyMatch[1];
-
-  // Create an HTML element to parse the table body
-  const tableBody = document.createElement('div');
-  tableBody.innerHTML = tableBodyHTML;
-
-  // Iterate through the rows and extract data
-  const rows = tableBody.querySelectorAll('tr');
-  const htmlRows = [];
-
-  for (let i = 0; i < rows.length; i++) {
-    const columns = rows[i].querySelectorAll('td');
-    const rowData = Array.from(columns).map(column => column.textContent.trim());
-    console.log("row data: " + rowData);
-
-    htmlRows.push(`
-      <tr>
-        <td><img src="resources/placehold.jpg" alt="Location ${i + 1} Photo" width="100" height="100"></td>
-        <td>Location ${i + 1}</td>
-        <td>${rowData.join('</td><td>')}</td>
-      </tr>
-    `);
-  }
-  console.log("Done parsing data")
-  // Display the table rows in the container
-  container.innerHTML = htmlRows.join('');
-}
-
 
 
 </script>
