@@ -22,7 +22,9 @@
     async defer></script>
 </head>
 
-<!-- 
+<body>
+
+  <!-- 
 
     A locaiton page. Since this is to be used with a website created on wix, I have to get creative with where I store my data. To get around this 
     I am using a google sheet above as a database. I can just make this document public since there is no private information to be stored on it and 
@@ -44,155 +46,134 @@
 
   -->
 
-<body>
 
   <!--  Map container -->
-  <div id="container">
-    <div id="map"></div>
+  <div id="container"
+    style="display: flex; flex-direction: row; justify-content: space-between; align-items: flex-start;">
+
+    <!-- Map -->
+    <div id="map"
+      style="width: 70%; height: 60vh; border-radius: 15px; margin-right: 20px;"></div> <!-- Added margin-right for spacing -->
 
     <!-- List of locations -->
-    <div id="locationTable">
-      <h2>Locations</h2>
-      <table>
+    <div id="locationTable" style="width: 30%;">
+      <h2 style="text-align: center;">Locations</h2>
+      <table style="width: 100%; border-collapse: collapse;">
         <thead>
           <tr>
-            <th>Photo</th>
-            <th>Name</th>
-            <th>Address</th>
-            <th>Phone</th>
+            <th style="padding: 8px; border-bottom: 1px solid #ddd;">Photo</th>
+            <th style="padding: 8px; border-bottom: 1px solid #ddd;">Name</th>
+            <th style="padding: 8px; border-bottom: 1px solid #ddd;">Address</th>
+            <th style="padding: 8px; border-bottom: 1px solid #ddd;">Phone</th>
           </tr>
         </thead>
-        <tbody id="locationData"></tbody>
+        <tbody id="locationData">
+          <!-- Apply rounded corners to the images -->
+          <tr>
+            <td style="padding: 8px;"><img src="resources/placehold.jpg" alt="Location 1 Photo" width="100"
+                height="100" style="border-radius: 10px;"></td> <!-- Added border-radius -->
+            <td style="padding: 8px;">Location 1 Name</td>
+            <td style="padding: 8px;">Location 1 Address</td>
+            <td style="padding: 8px;">Location 1 Phone</td>
+          </tr>
+          <tr>
+            <td style="padding: 8px;"><img src="resources/placehold.jpg" alt="Location 2 Photo" width="100"
+                height="100" style="border-radius: 10px;"></td> <!-- Added border-radius -->
+            <td style="padding: 8px;">Location 2 Name</td>
+            <td style="padding: 8px;">Location 2 Address</td>
+            <td style="padding: 8px;">Location 2 Phone</td>
+          </tr>
+          <!-- Repeat the structure for other locations -->
+        </tbody>
       </table>
     </div>
+
   </div>
 
-</html>
 
+  <!-- Misc Functions / JavaScript -->
+  <script>
+    const fetchButton = document.getElementById('fetchButton');
+    fetchButton.addEventListener('click', fetchData);
 
-
-
-
-<!-- Misc Functions / JavaScript -->
-<script>
-  const fetchButton = document.getElementById('fetchButton');
-  fetchButton.addEventListener('click', fetchData);
-
-  // Initialize the map
-  function initMap() {
-    var map = new google.maps.Map(document.getElementById('map'), {
-      center: { lat: 35.12384, lng: -106.62723 },
-      zoom: 11,
-      disableDefaultUI: true,
-      zoomControl: true,
-    });
-    fetchData(); // Fetch data once the map is initialized
-  }
-
-  function fetchData() {
-    console.log('Fetching data...');
-    const dataContainer = document.getElementById('locationData');
-
-    // Append a timestamp query parameter to the URL to prevent caching
-    const timestamp = new Date().getTime();
-    const urlWithTimestamp = `${GOOGLE_SHEET}?timestamp=${timestamp}`;
-
-    const xhr = new XMLHttpRequest();
-    xhr.onreadystatechange = function () {
-      if (xhr.readyState === XMLHttpRequest.DONE) {
-        if (xhr.status === 200) {
-          const data = xhr.responseText;
-          const startIndex = data.indexOf('<tbody>');
-          const endIndex = data.indexOf('</tbody>');
-          const tableContent = data.substring(startIndex, endIndex + '</tbody>'.length);
-
-          // Process the extracted table content
-          console.log('Data fetched:', tableContent);
-          parseGoogleSheetData(tableContent, dataContainer);
-        } else {
-          console.error('Error fetching data:', xhr.status);
-        }
-      }
-    };
-    xhr.open('GET', urlWithTimestamp);
-    xhr.send();
-    console.log('Done fetching data.');
-  }
-
-
-
-
-
-  function parseGoogleSheetData(data, container) {
-    const rows = data.split('</tr>'); // Split data into rows by </tr> tag
-
-    let htmlRows = [];
-    let i = 2; // Start from row 2 to skip the header
-
-    for (; i < rows.length; i++) {
-      const columns = rows[i].split('</td>'); // Split each row into columns by </td> tag
-      const rowData = columns.map(column => {
-        const startIndex = column.lastIndexOf('>') + 1;
-        return column.substring(startIndex).trim(); // Extract text content from within <td> tags
+    // Initialize the map
+    function initMap() {
+      var map = new google.maps.Map(document.getElementById('map'), {
+        center: { lat: 35.12384, lng: -106.62723 },
+        zoom: 11,
+        disableDefaultUI: true,
+        zoomControl: true,
       });
-
-      // Check if the row has content in any column
-      const hasContent = rowData.some(column => column.length > 0);
-
-      if (hasContent) {
-        // Check if the row has the expected number of columns
-        if (rowData.length >= 5) {
-          htmlRows.push(`
-          <tr>
-            <td><img src="resources/placehold.jpg" alt="Location ${i} Photo" width="100" height="100"></td>
-            <td>${rowData[1]}</td>
-            <td>${rowData.slice(2, 5).join('</td><td>')}</td> <!-- Skip the timestamp and adjust columns -->
-          </tr>
-        `);
-        }
-      } else {
-        break; // Stop processing if an empty row is encountered
-      }
+      fetchData(); // Fetch data once the map is initialized
     }
 
-    // Display the table rows in the container
-    container.innerHTML = htmlRows.join('');
-  }
+    function fetchData() {
+      console.log('Fetching data...');
+      const dataContainer = document.getElementById('locationData');
 
+      // Append a timestamp query parameter to the URL to prevent caching
+      const timestamp = new Date().getTime();
+      const urlWithTimestamp = `${GOOGLE_SHEET}?timestamp=${timestamp}`;
 
-</script>
+      const xhr = new XMLHttpRequest();
+      xhr.onreadystatechange = function () {
+        if (xhr.readyState === XMLHttpRequest.DONE) {
+          if (xhr.status === 200) {
+            const data = xhr.responseText;
+            const startIndex = data.indexOf('<tbody>');
+            const endIndex = data.indexOf('</tbody>');
+            const tableContent = data.substring(startIndex, endIndex + '</tbody>'.length);
 
+            // Process the extracted table content
+            console.log('Data fetched:', tableContent);
+            parseGoogleSheetData(tableContent, dataContainer);
+          } else {
+            console.error('Error fetching data:', xhr.status);
+          }
+        }
+      };
+      xhr.open('GET', urlWithTimestamp);
+      xhr.send();
+      console.log('Done fetching data.');
+    }
 
+    function parseGoogleSheetData(data, container) {
+      const rows = data.split('</tr>'); // Split data into rows by </tr> tag
 
+      let htmlRows = [];
+      let i = 2; // Start from row 2 to skip the header
 
+      for (; i < rows.length; i++) {
+        const columns = rows[i].split('</td>'); // Split each row into columns by </td> tag
+        const rowData = columns.map(column => {
+          const startIndex = column.lastIndexOf('>') + 1;
+          return column.substring(startIndex).trim(); // Extract text content from within <td> tags
+        });
 
+        // Check if the row has content in any column
+        const hasContent = rowData.some(column => column.length > 0);
 
-<!-- CSS -->
-<style>
-  #map {
-    width: 70%;
-    /* Set the width to 70% the total screen size */
-    height: 60vh;
-    /* Set height to be 70% the total height as well */
-    border-radius: 15px;
-    /* round the corners of the map */
-    margin-left: 5%;
-    /* leave a small space on the left side */
-    margin-right: 10%;
-    /* Extra space on the right side so we can list the options as well */
-    float: left;
-    /* Float the map container to the left */
-  }
+        if (hasContent) {
+          // Check if the row has the expected number of columns
+          if (rowData.length >= 5) {
+            htmlRows.push(`
+             <tr>
+               <td><img src="resources/placehold.jpg" alt="Location ${i} Photo" width="100" height="100"></td>
+               <td>${rowData[1]}</td>
+               <td>${rowData.slice(2, 5).join('</td><td>')}</td> <!-- Skip the timestamp and adjust columns -->
+             </tr>
+           `);
+          }
+        } else {
+          break; // Stop processing if an empty row is encountered
+        }
+      }
 
-  #locationTable {
-    width: 50%;
-    float: left;
-    /* Change the float property to "left" to move it to the right */
-  }
+      // Display the table rows in the container
+      container.innerHTML = htmlRows.join('');
+    }
+  </script>
 
-  /* Container to align elements horizontally */
-  #container {
-    display: flex;
-    flex-direction: row;
-  }
-</style>
+</body>
+
+</html>
